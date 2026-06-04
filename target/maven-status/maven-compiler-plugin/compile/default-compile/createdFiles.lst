@@ -1,0 +1,4 @@
+com\agenda\controller\ContatoController.class
+com\agenda\AgendaApplication.class
+com\agenda\repository\ContatoRepository.class
+com\agenda\model\Contato.class
