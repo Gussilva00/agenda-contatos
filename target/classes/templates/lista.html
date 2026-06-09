@@ -4,47 +4,231 @@
     <meta charset="UTF-8">
     <title>Agenda de Contatos</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        h1 { color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #4a4a8a; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        a.btn { padding: 6px 12px; text-decoration: none; border-radius: 4px; margin-right: 5px; }
-        a.btn-novo { background-color: #4a4a8a; color: white; display: inline-block; margin-bottom: 15px; }
-        a.btn-editar { background-color: #f0a500; color: white; }
-        a.btn-excluir { background-color: #d9534f; color: white; }
-        .vazio { color: #888; font-style: italic; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white;
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        header h1 { font-size: 26px; font-weight: 700; }
+        header span { font-size: 32px; }
+
+        .container { max-width: 900px; margin: 36px auto; padding: 0 20px; }
+
+        /* Mensagem de sucesso */
+        .alerta-sucesso {
+            background: #e8f5e9;
+            border-left: 5px solid #43a047;
+            color: #2e7d32;
+            padding: 14px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Barra de ações */
+        .acoes {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-novo {
+            background: linear-gradient(135deg, #1a237e, #3949ab);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 15px;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+        .btn-novo:hover { opacity: 0.88; }
+
+        /* Busca */
+        .busca-form { display: flex; gap: 8px; flex: 1; max-width: 380px; }
+        .busca-form input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #c5cae9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.2s;
+        }
+        .busca-form input:focus { outline: none; border-color: #3949ab; }
+        .busca-form button {
+            padding: 10px 16px;
+            background: #3949ab;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .busca-form button:hover { background: #1a237e; }
+        .btn-limpar {
+            padding: 10px 14px;
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        /* Card da tabela */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        thead tr { background: linear-gradient(135deg, #1a237e, #3949ab); }
+        thead th {
+            color: white;
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr { border-bottom: 1px solid #f0f0f0; transition: background 0.15s; }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: #f5f7ff; }
+        tbody td { padding: 14px 18px; font-size: 14px; color: #333; }
+
+        .vazio {
+            text-align: center;
+            padding: 48px 20px;
+            color: #9e9e9e;
+            font-size: 15px;
+        }
+        .vazio span { font-size: 40px; display: block; margin-bottom: 10px; }
+
+        /* Botões ação */
+        .btn-editar, .btn-excluir {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-editar { background: #fff3e0; color: #e65100; }
+        .btn-editar:hover { opacity: 0.75; }
+        .btn-excluir { background: #ffebee; color: #c62828; margin-left: 6px; }
+        .btn-excluir:hover { opacity: 0.75; }
+
+        .resultado-busca {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
-    <h1>📒 Agenda de Contatos</h1>
-    <a href="/contatos/novo" class="btn btn-novo">+ Novo Contato</a>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Nome</th>
-                <th>Telefone</th>
-                <th>Email</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:if="${#lists.isEmpty(contatos)}">
-                <td colspan="4" class="vazio">Nenhum contato cadastrado ainda.</td>
-            </tr>
-            <tr th:each="contato : ${contatos}">
-                <td th:text="${contato.nome}"></td>
-                <td th:text="${contato.telefone}"></td>
-                <td th:text="${contato.email}"></td>
-                <td>
-                    <a th:href="@{/contatos/editar/{id}(id=${contato.id})}" class="btn btn-editar">Editar</a>
-                    <a th:href="@{/contatos/excluir/{id}(id=${contato.id})}" class="btn btn-excluir"
-                       onclick="return confirm('Deseja excluir este contato?')">Excluir</a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<header>
+    <span>📒</span>
+    <h1>Agenda de Contatos</h1>
+</header>
+
+<div class="container">
+
+    <!-- Mensagem de sucesso -->
+    <div class="alerta-sucesso" th:if="${sucesso}">
+        ✅ <span th:text="${sucesso}"></span>
+    </div>
+
+    <!-- Ações: botão novo + busca -->
+    <div class="acoes">
+        <a href="/contatos/novo" class="btn-novo">+ Novo Contato</a>
+
+        <form class="busca-form" action="/contatos" method="get">
+            <input type="text" name="busca" placeholder="🔍 Buscar por nome..."
+                   th:value="${busca}" />
+            <button type="submit">Buscar</button>
+            <a href="/contatos" class="btn-limpar" th:if="${busca}">✕</a>
+        </form>
+    </div>
+
+    <!-- Resultado da busca -->
+    <p class="resultado-busca" th:if="${busca}">
+        Resultados para: <strong th:text="${busca}"></strong>
+        — <span th:text="${contatos.size()}"></span> encontrado(s)
+    </p>
+
+    <!-- Tabela -->
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>Email</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${#lists.isEmpty(contatos)}">
+                    <td colspan="4" class="vazio">
+                        <span>📭</span>
+                        Nenhum contato encontrado.
+                    </td>
+                </tr>
+                <tr th:each="contato : ${contatos}">
+                    <td th:text="${contato.nome}"></td>
+                    <td th:text="${contato.telefone}"></td>
+                    <td th:text="${contato.email}"></td>
+                    <td>
+                        <a th:href="@{/contatos/editar/{id}(id=${contato.id})}"
+                           class="btn-editar">✏️ Editar</a>
+                        <a th:href="@{/contatos/excluir/{id}(id=${contato.id})}"
+                           class="btn-excluir"
+                           onclick="return confirm('Deseja excluir este contato?')">🗑️ Excluir</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- Some a mensagem depois de 4 segundos -->
+<script>
+    const alerta = document.querySelector('.alerta-sucesso');
+    if (alerta) setTimeout(() => alerta.style.display = 'none', 4000);
+</script>
+
 </body>
 </html>

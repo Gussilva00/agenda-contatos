@@ -1,6 +1,8 @@
 package com.agenda.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 public class Contato {
@@ -8,8 +10,15 @@ public class Contato {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank(message = "Nome é obrigatório")
     private String nome;
+
+    @NotBlank(message = "Telefone é obrigatório")
     private String telefone;
+
+    @Email(message = "E-mail inválido")
+    @NotBlank(message = "E-mail é obrigatório")
     private String email;
 
     public Long getId() { return id; }

@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/contatos")
@@ -15,8 +18,15 @@ public class ContatoController {
     private ContatoRepository repository;
 
     @GetMapping
-    public String listar(Model model) {
-        model.addAttribute("contatos", repository.findAll());
+    public String listar(@RequestParam(required = false) String busca, Model model) {
+        List<Contato> contatos;
+        if (busca != null && !busca.isBlank()) {
+            contatos = repository.findByNomeContainingIgnoreCase(busca);
+        } else {
+            contatos = repository.findAll();
+        }
+        model.addAttribute("contatos", contatos);
+        model.addAttribute("busca", busca);
         return "lista";
     }
 
@@ -27,8 +37,11 @@ public class ContatoController {
     }
 
     @PostMapping("/salvar")
-    public String salvar(@ModelAttribute Contato contato) {
+    public String salvar(@ModelAttribute Contato contato, RedirectAttributes attrs) {
+        boolean isNovo = (contato.getId() == null);
         repository.save(contato);
+        attrs.addFlashAttribute("sucesso",
+            isNovo ? "Contato cadastrado com sucesso!" : "Contato atualizado com sucesso!");
         return "redirect:/contatos";
     }
 
@@ -39,8 +52,9 @@ public class ContatoController {
     }
 
     @GetMapping("/excluir/{id}")
-    public String excluir(@PathVariable Long id) {
+    public String excluir(@PathVariable Long id, RedirectAttributes attrs) {
         repository.deleteById(id);
+        attrs.addFlashAttribute("sucesso", "Contato excluído com sucesso!");
         return "redirect:/contatos";
     }
 }

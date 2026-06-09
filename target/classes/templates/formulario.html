@@ -2,37 +2,134 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Formulário de Contato</title>
+    <title>Formulário</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 0 20px; }
         h1 { color: #333; }
-        label { display: block; margin-top: 15px; font-weight: bold; }
-        input[type=text] { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; }
-        button.btn { background-color: #4a4a8a; color: white; margin-top: 20px; font-size: 15px; }
-        a.btn-voltar { background-color: #888; color: white; display: inline-block; margin-top: 10px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #333; }
+        input[type=text] {
+            width: 100%; padding: 10px; margin-top: 5px;
+            box-sizing: border-box; border: 2px solid #ccc;
+            border-radius: 6px; font-size: 15px; transition: border 0.2s;
+        }
+        input[type=text]:focus { border-color: #4a4a8a; outline: none; }
+        input[type=text].erro { border-color: #d9534f; }
+        input[type=text].ok { border-color: #5cb85c; }
+        .msg-erro { color: #d9534f; font-size: 13px; margin-top: 4px; display: none; }
+        .msg-erro.visivel { display: block; }
+        button.btn { 
+            padding: 10px 20px; border: none; border-radius: 6px;
+            cursor: pointer; font-size: 15px; margin-top: 20px;
+            background-color: #4a4a8a; color: white;
+        }
+        button.btn:hover { background-color: #3a3a7a; }
+        a.btn-voltar {
+            background-color: #888; color: white; display: inline-block;
+            margin-top: 10px; padding: 10px 20px; border-radius: 6px;
+            text-decoration: none; font-size: 15px;
+        }
     </style>
 </head>
 <body>
     <h1>📝 Cadastrar / Editar Contato</h1>
 
-    <form action="/contatos/salvar" method="post" th:object="${contato}">
+    <form action="/contatos/salvar" method="post" th:object="${contato}" onsubmit="return validarFormulario()">
         <input type="hidden" th:field="*{id}" />
 
         <label>Nome:</label>
-        <input type="text" th:field="*{nome}" placeholder="Ex: João Silva" />
+        <input type="text" id="nome" th:field="*{nome}" placeholder="Ex: João Silva" />
+        <span class="msg-erro" id="erro-nome">Por favor, informe o nome.</span>
 
         <label>Telefone:</label>
-        <input type="text" th:field="*{telefone}" placeholder="Ex: (81) 99999-9999" />
+        <input type="text" id="telefone" th:field="*{telefone}" placeholder="(81) 99999-9999" maxlength="15" />
+        <span class="msg-erro" id="erro-telefone">Informe um telefone válido: (XX) XXXXX-XXXX</span>
 
         <label>Email:</label>
-        <input type="text" th:field="*{email}" placeholder="Ex: joao@email.com" />
+        <input type="text" id="email" th:field="*{email}" placeholder="Ex: joao@email.com" />
+        <span class="msg-erro" id="erro-email">Informe um e-mail válido.</span>
 
         <br/>
         <button type="submit" class="btn">💾 Salvar</button>
     </form>
 
     <br/>
-    <a href="/contatos" class="btn btn-voltar">← Voltar</a>
+    <a href="/contatos" class="btn-voltar">← Voltar</a>
+
+    <script>
+        const campoTelefone = document.getElementById('telefone');
+
+        // Formata automaticamente enquanto digita
+        campoTelefone.addEventListener('input', function () {
+            let valor = this.value.replace(/\D/g, ''); // remove tudo que não é número
+            if (valor.length > 11) valor = valor.slice(0, 11);
+
+            if (valor.length <= 10) {
+                // Fixo: (XX) XXXX-XXXX
+                valor = valor
+                    .replace(/^(\d{2})/, '($1) ')
+                    .replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                // Celular: (XX) XXXXX-XXXX
+                valor = valor
+                    .replace(/^(\d{2})/, '($1) ')
+                    .replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            this.value = valor;
+        });
+
+        // Bloqueia colar texto com letras
+        campoTelefone.addEventListener('keypress', function (e) {
+            if (!/[\d]/.test(e.key) && e.key !== 'Backspace') {
+                e.preventDefault();
+            }
+        });
+
+        // Validação ao enviar o formulário
+        function validarFormulario() {
+            let valido = true;
+
+            // Valida nome
+            const nome = document.getElementById('nome').value.trim();
+            const erroNome = document.getElementById('erro-nome');
+            if (nome === '') {
+                erroNome.classList.add('visivel');
+                document.getElementById('nome').classList.add('erro');
+                valido = false;
+            } else {
+                erroNome.classList.remove('visivel');
+                document.getElementById('nome').classList.remove('erro');
+                document.getElementById('nome').classList.add('ok');
+            }
+
+            // Valida telefone
+            const tel = document.getElementById('telefone').value.replace(/\D/g, '');
+            const erroTel = document.getElementById('erro-telefone');
+            if (tel.length < 10 || tel.length > 11) {
+                erroTel.classList.add('visivel');
+                campoTelefone.classList.add('erro');
+                valido = false;
+            } else {
+                erroTel.classList.remove('visivel');
+                campoTelefone.classList.remove('erro');
+                campoTelefone.classList.add('ok');
+            }
+
+            // Valida email
+            const email = document.getElementById('email').value.trim();
+            const erroEmail = document.getElementById('erro-email');
+            const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!regexEmail.test(email)) {
+                erroEmail.classList.add('visivel');
+                document.getElementById('email').classList.add('erro');
+                valido = false;
+            } else {
+                erroEmail.classList.remove('visivel');
+                document.getElementById('email').classList.remove('erro');
+                document.getElementById('email').classList.add('ok');
+            }
+
+            return valido;
+        }
+    </script>
 </body>
 </html>
